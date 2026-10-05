@@ -18,6 +18,7 @@ class IslandOverlayService : Service() {
     private var titleView: TextView? = null
     private var detailView: TextView? = null
     private var collapse: Runnable? = null
+    private var expanded = false
 
     private fun dp(v: Float) = (v * resources.displayMetrics.density).roundToInt()
 
@@ -100,9 +101,10 @@ class IslandOverlayService : Service() {
     }
 
     private fun toggleExpanded() {
-        if (detailView?.visibility == View.VISIBLE) {
+        if (expanded) {
             collapseNow()
         } else {
+            expanded = true
             detailView?.visibility = View.VISIBLE
             titleView?.text = if (titleView?.text.isNullOrBlank()) "Dynamic Island" else titleView?.text
             island?.animate()?.scaleX(.96f)?.scaleY(.96f)?.setDuration(90)?.withEndAction {
@@ -121,6 +123,7 @@ class IslandOverlayService : Service() {
     }
 
     private fun collapseNow() {
+        expanded = false
         collapse?.let { Handler(Looper.getMainLooper()).removeCallbacks(it) }
         detailView?.visibility = View.GONE
         titleView?.text = ""
@@ -140,6 +143,7 @@ class IslandOverlayService : Service() {
 
     fun showEvent(title: String, detail: String) {
         Handler(Looper.getMainLooper()).post {
+            expanded = true
             titleView?.text = title.take(28)
             detailView?.text = detail.take(55)
             detailView?.visibility = View.VISIBLE
