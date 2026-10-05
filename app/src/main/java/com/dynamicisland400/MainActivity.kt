@@ -60,7 +60,7 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
         val scroll = ScrollView(this).apply {
             isFillViewport = true
             setBackgroundColor(Color.BLACK)
-            addView(root, ScrollView.LayoutParams(-1, -1))
+            addView(root)
         }
         setContentView(scroll); updateStatus(); updatePositionText(); updateSizeText()
     }
