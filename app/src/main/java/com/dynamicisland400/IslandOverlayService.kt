@@ -74,7 +74,7 @@ class IslandOverlayService : Service() {
         island!!.addView(actions,LinearLayout.LayoutParams(-1,dp(38f)))
         val lp=WindowManager.LayoutParams(dp(w.toFloat()),dp(h.toFloat()),WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,PixelFormat.TRANSLUCENT)
-            .apply{gravity=Gravity.TOP or Gravity.CENTER_HORIZONTAL;x=dp(x.toFloat());y=dp(y.toFloat())}
+            .apply{gravity=Gravity.TOP or Gravity.CENTER_HORIZONTAL;this.x=dp(x.toFloat());this.y=dp(y.toFloat())}
         try{wm!!.addView(island,lp);island!!.scaleX=.94f;island!!.scaleY=.94f;island!!.animate().scaleX(1f).scaleY(1f).setDuration(220).start()}catch(_:Exception){island=null;stopSelf()}
     }
 
