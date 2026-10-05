@@ -25,7 +25,7 @@ class IslandOverlayService : Service() {
         super.onCreate()
         createChannel()
         startForeground(400, notification())
-        instance=this
+        instance = this
         if (Settings.canDrawOverlays(this)) showIsland() else stopSelf()
     }
 
@@ -53,6 +53,7 @@ class IslandOverlayService : Service() {
             setOnClickListener { toggleExpanded() }
             setOnLongClickListener { collapseNow(); true }
         }
+
         titleView = TextView(context).apply {
             text = "●"
             textSize = 12f
@@ -60,6 +61,7 @@ class IslandOverlayService : Service() {
             gravity = Gravity.CENTER
             maxLines = 1
         }
+
         detailView = TextView(context).apply {
             textSize = 10f
             setTextColor(Color.LTGRAY)
@@ -67,6 +69,7 @@ class IslandOverlayService : Service() {
             maxLines = 1
             visibility = View.GONE
         }
+
         island!!.addView(titleView, LinearLayout.LayoutParams(-1, dp(22f)))
         island!!.addView(detailView, LinearLayout.LayoutParams(-1, dp(18f)))
 
@@ -79,75 +82,92 @@ class IslandOverlayService : Service() {
             PixelFormat.TRANSLUCENT
         ).apply {
             gravity = Gravity.TOP or Gravity.CENTER_HORIZONTAL
-            this.x = dp(x.toFloat()); this.y = dp(y.toFloat())
+            this.x = dp(x.toFloat())
+            this.y = dp(y.toFloat())
         }
+
         try {
             windowManager!!.addView(island, params)
-            island!!.scaleX=.94f; island!!.scaleY=.94f
+            island!!.scaleX = .94f
+            island!!.scaleY = .94f
             island!!.animate().scaleX(1f).scaleY(1f).setDuration(220).start()
-        } catch (_: Exception) { island=null; stopSelf() }
+        } catch (_: Exception) {
+            island = null
+            stopSelf()
+        }
     }
 
     private fun toggleExpanded() {
-        val v=island ?: return
-        if (detailView?.visibility == View.VISIBLE) collapseNow() else {
-            detailView?.visibility=View.VISIBLE
-            titleView?.text=if (titleView?.text=="●") "Dynamic Island" else titleView?.text
+        if (detailView?.visibility == View.VISIBLE) {
+            collapseNow()
+        } else {
+            detailView?.visibility = View.VISIBLE
+            titleView?.text = if (titleView?.text == "●") "Dynamic Island" else titleView?.text
             resize(dp(300f), dp(76f))
             scheduleCollapse()
         }
     }
 
-    private fun resize(w:Int,h:Int) {
-        val lp=island?.layoutParams as? WindowManager.LayoutParams ?: return
-        lp.width=w; lp.height=h
-        try { windowManager?.updateViewLayout(island,lp) } catch (_:Exception) {}
+    private fun resize(w: Int, h: Int) {
+        val lp = island?.layoutParams as? WindowManager.LayoutParams ?: return
+        lp.width = w
+        lp.height = h
+        try { windowManager?.updateViewLayout(island, lp) } catch (_: Exception) {}
     }
 
     private fun collapseNow() {
         collapse?.let { Handler(Looper.getMainLooper()).removeCallbacks(it) }
-        detailView?.visibility=View.GONE
-        titleView?.text="●"
-        val prefs=getSharedPreferences("island_settings",MODE_PRIVATE)
-        resize(dp(prefs.getInt("width",162).toFloat()),dp(prefs.getInt("height",38).toFloat()))
+        detailView?.visibility = View.GONE
+        titleView?.text = "●"
+        val prefs = getSharedPreferences("island_settings", MODE_PRIVATE)
+        resize(dp(prefs.getInt("width", 162).toFloat()), dp(prefs.getInt("height", 38).toFloat()))
     }
 
     private fun scheduleCollapse() {
         collapse?.let { Handler(Looper.getMainLooper()).removeCallbacks(it) }
-        val r=Runnable{collapseNow()}; collapse=r
-        Handler(Looper.getMainLooper()).postDelayed(r,4500)
+        val r = Runnable { collapseNow() }
+        collapse = r
+        Handler(Looper.getMainLooper()).postDelayed(r, 4500)
     }
 
-    fun showEvent(title:String, detail:String) {
+    fun showEvent(title: String, detail: String) {
         Handler(Looper.getMainLooper()).post {
-            titleView?.text=title.take(28)
-            detailView?.text=detail.take(55)
-            detailView?.visibility=View.VISIBLE
-            resize(dp(300f),dp(76f))
+            titleView?.text = title.take(28)
+            detailView?.text = detail.take(55)
+            detailView?.visibility = View.VISIBLE
+            resize(dp(300f), dp(76f))
             scheduleCollapse()
         }
     }
 
     private fun createChannel() {
         getSystemService(NotificationManager::class.java).createNotificationChannel(
-            NotificationChannel("island","Dynamic Island",NotificationManager.IMPORTANCE_LOW)
+            NotificationChannel("island", "Dynamic Island", NotificationManager.IMPORTANCE_LOW)
         )
     }
+
     private fun notification(): Notification =
-        NotificationCompat.Builder(this,"island")
+        NotificationCompat.Builder(this, "island")
             .setSmallIcon(android.R.drawable.ic_dialog_info)
             .setContentTitle("Dynamic Island is active")
             .setContentText("The overlay is running.")
-            .setOngoing(true).setCategory(Notification.CATEGORY_SERVICE).build()
+            .setOngoing(true)
+            .setCategory(Notification.CATEGORY_SERVICE)
+            .build()
 
-        titleView?.text = title.take(28)
+    override fun onDestroy() {
         collapse?.let { Handler(Looper.getMainLooper()).removeCallbacks(it) }
-        island?.let { try{windowManager?.removeView(it)}catch(_:Exception){} }
-        island=null; instance=null; super.onDestroy()
+        island?.let {
+            try { windowManager?.removeView(it) } catch (_: Exception) {}
+        }
+        island = null
+        instance = null
+        super.onDestroy()
     }
-    override fun onBind(intent: Intent?)=null
+
+    override fun onBind(intent: Intent?) = null
 
     companion object {
-        var instance:IslandOverlayService?=null
+        var instance: IslandOverlayService? = null
     }
 }
