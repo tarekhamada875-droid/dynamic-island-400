@@ -7,6 +7,8 @@ import android.graphics.PixelFormat
 import android.graphics.drawable.GradientDrawable
 import android.os.*
 import android.provider.Settings
+import android.telephony.PhoneStateListener
+import android.telephony.TelephonyManager
 import android.view.*
 import android.widget.*
 import androidx.core.app.NotificationCompat
@@ -18,6 +20,8 @@ class IslandOverlayService : Service() {
     private var titleView: TextView? = null
     private var detailView: TextView? = null
     private var collapse: Runnable? = null
+    private var telephonyManager: TelephonyManager? = null
+    private var phoneListener: PhoneStateListener? = null
 
     private fun dp(v: Float) = (v * resources.displayMetrics.density).roundToInt()
 
@@ -26,7 +30,34 @@ class IslandOverlayService : Service() {
         createChannel()
         startForeground(400, notification())
         instance = this
+        registerPhoneStateListener()
         if (Settings.canDrawOverlays(this)) showIsland() else stopSelf()
+    }
+
+    private fun registerPhoneStateListener() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M ||
+            checkSelfPermission(android.Manifest.permission.READ_PHONE_STATE) != android.content.pm.PackageManager.PERMISSION_GRANTED) return
+        telephonyManager = getSystemService(TELEPHONY_SERVICE) as TelephonyManager
+        phoneListener = object : PhoneStateListener() {
+            override fun onCallStateChanged(state: Int, phoneNumber: String?) {
+                when (state) {
+                    TelephonyManager.CALL_STATE_RINGING -> showEvent("Incoming call", "Phone is ringing")
+                    TelephonyManager.CALL_STATE_OFFHOOK -> showEvent("Call active", "Phone call in progress")
+                    TelephonyManager.CALL_STATE_IDLE -> collapseNow()
+                }
+            }
+        }
+        try { telephonyManager?.listen(phoneListener, PhoneStateListener.LISTEN_CALL_STATE) } catch (_: Exception) {}
+    }
+
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        if (intent?.action == "SHOW_EVENT") {
+            showEvent(
+                intent.getStringExtra("title") ?: "Notification",
+                intent.getStringExtra("detail") ?: ""
+            )
+        }
+        return START_STICKY
     }
 
     private fun showIsland() {
@@ -61,7 +92,6 @@ class IslandOverlayService : Service() {
             gravity = Gravity.CENTER
             maxLines = 1
         }
-
         detailView = TextView(context).apply {
             textSize = 10f
             setTextColor(Color.LTGRAY)
@@ -69,7 +99,6 @@ class IslandOverlayService : Service() {
             maxLines = 1
             visibility = View.GONE
         }
-
         island!!.addView(titleView, LinearLayout.LayoutParams(-1, dp(22f)))
         island!!.addView(detailView, LinearLayout.LayoutParams(-1, dp(18f)))
 
@@ -98,9 +127,8 @@ class IslandOverlayService : Service() {
     }
 
     private fun toggleExpanded() {
-        if (detailView?.visibility == View.VISIBLE) {
-            collapseNow()
-        } else {
+        if (detailView?.visibility == View.VISIBLE) collapseNow()
+        else {
             detailView?.visibility = View.VISIBLE
             titleView?.text = if (titleView?.text == "●") "Dynamic Island" else titleView?.text
             resize(dp(300f), dp(76f))
@@ -132,6 +160,7 @@ class IslandOverlayService : Service() {
 
     fun showEvent(title: String, detail: String) {
         Handler(Looper.getMainLooper()).post {
+            if (island == null && Settings.canDrawOverlays(this)) showIsland()
             titleView?.text = title.take(28)
             detailView?.text = detail.take(55)
             detailView?.visibility = View.VISIBLE
@@ -157,9 +186,10 @@ class IslandOverlayService : Service() {
 
     override fun onDestroy() {
         collapse?.let { Handler(Looper.getMainLooper()).removeCallbacks(it) }
-        island?.let {
-            try { windowManager?.removeView(it) } catch (_: Exception) {}
+        if (telephonyManager != null && phoneListener != null) {
+            try { telephonyManager?.listen(phoneListener, PhoneStateListener.LISTEN_NONE) } catch (_: Exception) {}
         }
+        island?.let { try { windowManager?.removeView(it) } catch (_: Exception) {} }
         island = null
         instance = null
         super.onDestroy()
@@ -167,7 +197,5 @@ class IslandOverlayService : Service() {
 
     override fun onBind(intent: Intent?) = null
 
-    companion object {
-        var instance: IslandOverlayService? = null
-    }
+    companion object { var instance: IslandOverlayService? = null }
 }
