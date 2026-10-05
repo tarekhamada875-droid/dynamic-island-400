@@ -140,7 +140,7 @@ class IslandOverlayService : Service() {
             .setContentText("The overlay is running.")
             .setOngoing(true).setCategory(Notification.CATEGORY_SERVICE).build()
 
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {\n        if (intent?.action=="SHOW_EVENT") showEvent(intent.getStringExtra("title") ?: "Notification", intent.getStringExtra("detail") ?: "")\n        return START_STICKY\n    }\n\n    override fun onDestroy() {
+        titleView?.text = title.take(28)
         collapse?.let { Handler(Looper.getMainLooper()).removeCallbacks(it) }
         island?.let { try{windowManager?.removeView(it)}catch(_:Exception){} }
         island=null; instance=null; super.onDestroy()
