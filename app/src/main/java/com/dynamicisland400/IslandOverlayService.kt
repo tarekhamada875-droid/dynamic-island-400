@@ -47,15 +47,16 @@ class IslandOverlayService : Service() {
             background = GradientDrawable().apply {
                 setColor(Color.BLACK)
                 cornerRadius = dp(28f).toFloat()
+                setStroke(dp(1f), Color.rgb(14, 14, 14))
             }
-            elevation = dp(10f).toFloat()
+            elevation = dp(12f).toFloat()
             isClickable = true
             setOnClickListener { toggleExpanded() }
             setOnLongClickListener { collapseNow(); true }
         }
 
         titleView = TextView(context).apply {
-            text = "●"
+            text = ""
             textSize = 12f
             setTextColor(Color.WHITE)
             gravity = Gravity.CENTER
@@ -64,7 +65,7 @@ class IslandOverlayService : Service() {
 
         detailView = TextView(context).apply {
             textSize = 10f
-            setTextColor(Color.LTGRAY)
+            setTextColor(Color.rgb(190, 190, 190))
             gravity = Gravity.CENTER
             maxLines = 1
             visibility = View.GONE
@@ -88,9 +89,10 @@ class IslandOverlayService : Service() {
 
         try {
             windowManager!!.addView(island, params)
-            island!!.scaleX = .94f
-            island!!.scaleY = .94f
-            island!!.animate().scaleX(1f).scaleY(1f).setDuration(220).start()
+            island!!.scaleX = .92f
+            island!!.scaleY = .92f
+            island!!.alpha = .96f
+            island!!.animate().scaleX(1f).scaleY(1f).alpha(1f).setDuration(260).setInterpolator(android.view.animation.OvershootInterpolator(1.15f)).start()
         } catch (_: Exception) {
             island = null
             stopSelf()
@@ -102,8 +104,11 @@ class IslandOverlayService : Service() {
             collapseNow()
         } else {
             detailView?.visibility = View.VISIBLE
-            titleView?.text = if (titleView?.text == "●") "Dynamic Island" else titleView?.text
-            resize(dp(300f), dp(76f))
+            titleView?.text = if (titleView?.text.isNullOrBlank()) "Dynamic Island" else titleView?.text
+            island?.animate()?.scaleX(.96f)?.scaleY(.96f)?.setDuration(90)?.withEndAction {
+                resize(dp(300f), dp(76f))
+                island?.animate()?.scaleX(1f)?.scaleY(1f)?.setDuration(240)?.setInterpolator(android.view.animation.OvershootInterpolator(1.05f))?.start()
+            }?.start()
             scheduleCollapse()
         }
     }
@@ -118,9 +123,12 @@ class IslandOverlayService : Service() {
     private fun collapseNow() {
         collapse?.let { Handler(Looper.getMainLooper()).removeCallbacks(it) }
         detailView?.visibility = View.GONE
-        titleView?.text = "●"
+        titleView?.text = ""
         val prefs = getSharedPreferences("island_settings", MODE_PRIVATE)
-        resize(dp(prefs.getInt("width", 162).toFloat()), dp(prefs.getInt("height", 38).toFloat()))
+        island?.animate()?.scaleX(.96f)?.scaleY(.96f)?.setDuration(100)?.withEndAction {
+            resize(dp(prefs.getInt("width", 162).toFloat()), dp(prefs.getInt("height", 38).toFloat()))
+            island?.animate()?.scaleX(1f)?.scaleY(1f)?.setDuration(210)?.start()
+        }?.start()
     }
 
     private fun scheduleCollapse() {
@@ -135,7 +143,10 @@ class IslandOverlayService : Service() {
             titleView?.text = title.take(28)
             detailView?.text = detail.take(55)
             detailView?.visibility = View.VISIBLE
-            resize(dp(300f), dp(76f))
+            island?.animate()?.scaleX(.96f)?.scaleY(.96f)?.setDuration(90)?.withEndAction {
+                resize(dp(300f), dp(76f))
+                island?.animate()?.scaleX(1f)?.scaleY(1f)?.setDuration(240)?.start()
+            }?.start()
             scheduleCollapse()
         }
     }
