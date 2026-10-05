@@ -9,9 +9,7 @@
         android:label="Dynamic Island 400"
         android:supportsRtl="true"
         android:theme="@style/Theme.DynamicIsland400">
-        <activity
-            android:name=".MainActivity"
-            android:exported="true">
+        <activity android:name=".MainActivity" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
@@ -25,6 +23,16 @@
             <property
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
                 android:value="persistent user-visible Dynamic Island overlay"/>
+        </service>
+
+        <service
+            android:name=".IslandNotificationListener"
+            android:label="Dynamic Island Notifications"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService"/>
+            </intent-filter>
         </service>
     </application>
 </manifest>
