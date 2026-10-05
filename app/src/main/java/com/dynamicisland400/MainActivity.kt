@@ -39,7 +39,8 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
         root.addView(Button(this).apply { text="1. Open App Info / Allow Restricted Settings"; setOnClickListener{openAppInfo()} })
         root.addView(Button(this).apply { text="2. Allow Display Over Other Apps"; setOnClickListener{openOverlaySettings()} })
         root.addView(Button(this).apply { text="3. Allow Notification Access (for live events)"; setOnClickListener{openNotificationAccess()} })
-        root.addView(Button(this).apply { text="4. Start Dynamic Island"; setOnClickListener{startIsland()} })
+        root.addView(Button(this).apply { text="4. Allow Call Detection"; setOnClickListener{requestCallPermission()} })
+        root.addView(Button(this).apply { text="5. Start Dynamic Island"; setOnClickListener{startIsland()} })
 
         root.addView(TextView(this).apply { text="SIZE"; textSize=13f; setTextColor(Color.LTGRAY); setPadding(0,24,0,8) })
         sizeText=TextView(this).apply { textSize=14f; setTextColor(Color.WHITE); gravity=Gravity.CENTER; setPadding(0,0,0,8) }; root.addView(sizeText)
@@ -82,8 +83,14 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
     private fun openAppInfo(){ startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,Uri.parse("package:$packageName"))) }
     private fun openOverlaySettings(){ try{startActivity(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,Uri.parse("package:$packageName")))}catch(_:Exception){startActivity(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION))} }
     private fun openNotificationAccess(){ startActivity(Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS")) }
+    private fun requestCallPermission(){
+        if(Build.VERSION.SDK_INT>=23 && ContextCompat.checkSelfPermission(this,Manifest.permission.READ_PHONE_STATE)!=PackageManager.PERMISSION_GRANTED){
+            ActivityCompat.requestPermissions(this,arrayOf(Manifest.permission.READ_PHONE_STATE),401)
+        }
+    }
     private fun startIsland(){
         if(!Settings.canDrawOverlays(this)){updateStatus();openOverlaySettings();return}
+        if(Build.VERSION.SDK_INT>=23 && ContextCompat.checkSelfPermission(this,Manifest.permission.READ_PHONE_STATE)!=PackageManager.PERMISSION_GRANTED){requestCallPermission();return}
         if(Build.VERSION.SDK_INT>=33 && ContextCompat.checkSelfPermission(this,Manifest.permission.POST_NOTIFICATIONS)!=PackageManager.PERMISSION_GRANTED){ActivityCompat.requestPermissions(this,arrayOf(Manifest.permission.POST_NOTIFICATIONS),400);return}
         ContextCompat.startForegroundService(this,Intent(this,IslandOverlayService::class.java))
     }
