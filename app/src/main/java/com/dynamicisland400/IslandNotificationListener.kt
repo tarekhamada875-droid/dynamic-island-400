@@ -10,11 +10,6 @@ class IslandNotificationListener : NotificationListenerService() {
         val n=sbn.notification
         val title=n.extras.getString(Notification.EXTRA_TITLE)?.takeIf{it.isNotBlank()} ?: return
         val text=n.extras.getCharSequence(Notification.EXTRA_TEXT)?.toString()?.takeIf{it.isNotBlank()} ?: ""
-        val serviceIntent=android.content.Intent(this, IslandOverlayService::class.java).apply {
-            action="SHOW_EVENT"
-            putExtra("title",title)
-            putExtra("detail",text)
-        }
-        try { startService(serviceIntent) } catch(_:Exception) {}
+        IslandOverlayService.instance?.showEvent(title, text)
     }
 }
