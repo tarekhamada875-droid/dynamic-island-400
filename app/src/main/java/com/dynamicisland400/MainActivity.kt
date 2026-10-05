@@ -34,14 +34,14 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
             setBackgroundColor(Color.BLACK)
         }
         root.addView(TextView(this).apply { text="Dynamic Island 400"; textSize=28f; setTextColor(Color.WHITE); setPadding(0,20,0,12) })
-        root.addView(TextView(this).apply { text="iPhone-style interactive overlay for HONOR 400."; textSize=16f; setTextColor(Color.LTGRAY); setPadding(0,0,0,16) })
+        root.addView(TextView(this).apply { text="Premium black Dynamic Island • tap the pill to expand"; textSize=16f; setTextColor(Color.LTGRAY); setPadding(0,0,0,16) })
         status=TextView(this).apply { textSize=15f; setTextColor(Color.GRAY); setPadding(0,0,0,12) }; root.addView(status)
         root.addView(Button(this).apply { text="1. Open App Info / Allow Restricted Settings"; setOnClickListener{openAppInfo()} })
         root.addView(Button(this).apply { text="2. Allow Display Over Other Apps"; setOnClickListener{openOverlaySettings()} })
         root.addView(Button(this).apply { text="3. Allow Notification Access (for live events)"; setOnClickListener{openNotificationAccess()} })
         root.addView(Button(this).apply { text="4. Start Dynamic Island"; setOnClickListener{startIsland()} })
 
-        root.addView(TextView(this).apply { text="SIZE"; textSize=13f; setTextColor(Color.LTGRAY); setPadding(0,24,0,8) })
+        root.addView(TextView(this).apply { text="SIZE • adjusts the pill itself"; textSize=13f; setTextColor(Color.LTGRAY); setPadding(0,24,0,8) })
         sizeText=TextView(this).apply { textSize=14f; setTextColor(Color.WHITE); gravity=Gravity.CENTER; setPadding(0,0,0,8) }; root.addView(sizeText)
         root.addView(Button(this).apply { text="WIDTH  +"; setOnClickListener{changeSize(8,0)} })
         root.addView(Button(this).apply { text="WIDTH  −"; setOnClickListener{changeSize(-8,0)} })
