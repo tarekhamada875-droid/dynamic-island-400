@@ -9,6 +9,7 @@ import android.os.Bundle
 import android.provider.Settings
 import android.widget.Button
 import android.widget.LinearLayout
+import android.widget.ScrollView
 import android.widget.TextView
 import android.graphics.Color
 import android.view.Gravity
@@ -56,7 +57,12 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity() {
         root.addView(Button(this).apply { text="RIGHT  ▶"; setOnClickListener{move(4,0)} })
         root.addView(Button(this).apply { text="Reset Position"; setOnClickListener{prefs.edit().putInt("x",0).putInt("y",8).apply(); updatePositionText(); restartIslandIfRunning()} })
         root.addView(Button(this).apply { text="Stop Island"; setOnClickListener{stopService(Intent(this@MainActivity,IslandOverlayService::class.java))} })
-        setContentView(root); updateStatus(); updatePositionText(); updateSizeText()
+        val scroll = ScrollView(this).apply {
+            isFillViewport = true
+            setBackgroundColor(Color.BLACK)
+            addView(root, ScrollView.LayoutParams(-1, -1))
+        }
+        setContentView(scroll); updateStatus(); updatePositionText(); updateSizeText()
     }
 
     private fun changeSize(dw:Int,dh:Int) {
